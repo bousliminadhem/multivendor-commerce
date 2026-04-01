@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+.page-shell {
+  @apply min-h-screen bg-white text-slate-900;
+}
+
+.page-shell main {
+  @apply min-h-[70vh];
+}
