@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { OrderDto } from '../models/order-dto';
@@ -17,6 +17,14 @@ export class OrderService {
   getMyOrders(page?: PageRequest) {
     return this.http.get<PageResponse<OrderDto>>(`${this.baseUrl}/my-orders`, {
       params: buildHttpParams(page)
+    });
+  }
+
+  getVendorOrders(page?: PageRequest) {
+    let params = buildHttpParams(page);
+    params = params.append('vendorOrders', 'true');
+    return this.http.get<PageResponse<OrderDto>>(this.baseUrl, {
+      params
     });
   }
 

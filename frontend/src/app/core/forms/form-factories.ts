@@ -53,7 +53,7 @@ export function buildProductForm(fb: NonNullableFormBuilder): FormGroup<{
   return fb.group({
     name: fb.control('', { validators: [...trimRequired, Validators.maxLength(255)] }),
     description: fb.control<string | null>(null),
-    price: fb.control(0, { validators: [Validators.required, Validators.min(0)] }),
+    price: fb.control(0, { validators: [Validators.required, Validators.min(0.01)] }),
     stockQuantity: fb.control(0, { validators: [Validators.required, Validators.min(0)] }),
     imageUrl: fb.control<string | null>(null),
     categoryId: fb.control(0, { validators: [Validators.required, Validators.min(1)] })

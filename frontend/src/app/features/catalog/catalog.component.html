@@ -1,0 +1,101 @@
+<section class="w-full space-y-8 p-10 lg:p-12">
+  <div class="flex flex-col gap-2">
+    <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">Catalog</p>
+    <h1 class="text-3xl font-semibold text-slate-900">Curated products</h1>
+    <p class="text-slate-600">Minimalist browsing with live data from the Spring backend.</p>
+  </div>
+
+  <div class="card p-5">
+    <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_260px]">
+      <div class="space-y-2">
+        <label for="catalog-search" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Search by Name</label>
+        <input
+          id="catalog-search"
+          type="search"
+          [value]="searchTerm()"
+          (input)="onSearchInput($event)"
+          placeholder="Search products"
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label for="catalog-category" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Filter by Category</label>
+        <select
+          id="catalog-category"
+          [value]="selectedCategoryId() === null ? 'all' : selectedCategoryId()"
+          (change)="onCategoryChange($event)"
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-900"
+        >
+          <option value="all">All categories</option>
+          @for (category of categories(); track category.id ?? category.name) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    @if (loading()) {
+      @for (s of skeletons; track s) {
+        <div class="card p-5">
+          <div class="skeleton mb-4 h-40"></div>
+          <div class="skeleton mb-2 h-4 w-3/4"></div>
+          <div class="skeleton h-4 w-1/2"></div>
+        </div>
+      }
+    } @else {
+      @if (filteredProducts().length === 0) {
+        <div class="col-span-full rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
+          No products match your current filters.
+        </div>
+      } @else {
+        @for (product of filteredProducts(); track product.id ?? product.name) {
+          <article
+            class="card flex cursor-pointer flex-col p-4 transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+            [routerLink]="['/products', product.id]"
+          >
+            <div class="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-50">
+              <button
+                type="button"
+                class="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-500 shadow-sm transition hover:text-rose-500"
+                [attr.aria-label]="isWishlisted(product.id) ? 'Remove from wishlist' : 'Add to wishlist'"
+                (click)="onToggleWishlist(product, $event)"
+              >
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor">
+                  <path
+                    [attr.d]="isWishlisted(product.id)
+                      ? 'M12.001 20s-7-4.35-9.2-8.1c-1.56-2.66-.67-6.04 1.81-7.35 2.02-1.06 4.31-.25 5.39 1.36 1.08-1.61 3.37-2.42 5.39-1.36 2.48 1.31 3.37 4.69 1.81 7.35-2.2 3.75-9.2 8.1-9.2 8.1Z'
+                      : 'M12.1 8.64 12 8.77l-.11-.13c-1.31-1.58-3.54-2.03-5.23-.96-1.98 1.25-2.44 3.95-1.02 5.9 1.98 2.72 6.36 5.62 6.36 5.62s4.38-2.9 6.36-5.62c1.42-1.95.96-4.65-1.02-5.9-1.69-1.07-3.92-.62-5.24.96ZM12 21s-4.93-3.2-7.23-6.36c-2.05-2.81-1.34-6.67 1.56-8.5 2.09-1.33 4.79-1.04 6.67.61 1.88-1.65 4.58-1.94 6.67-.61 2.9 1.83 3.61 5.69 1.56 8.5C16.93 17.8 12 21 12 21Z'"
+                  />
+                </svg>
+              </button>
+              <img
+                *ngIf="product.imageUrl"
+                [src]="product.imageUrl"
+                [alt]="product.name"
+                class="h-full w-full object-cover"
+              />
+            </div>
+            <div class="mt-4 flex flex-1 flex-col gap-2">
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="flex-1 font-semibold text-slate-900 line-clamp-2">{{ product.name }}</h3>
+                <span class="shrink-0 text-base font-semibold text-slate-900">
+                  {{ product.price | currency:'USD':'symbol' }}
+                </span>
+              </div>
+              <p class="line-clamp-2 text-sm text-slate-600">{{ product.description }}</p>
+              <div class="mt-auto flex items-center justify-between text-sm text-slate-600">
+                <span class="truncate">{{ product.categoryName || 'Category' }}</span>
+                <span class="shrink-0 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                  {{ product.stockQuantity }} in stock
+                </span>
+              </div>
+            </div>
+          </article>
+        }
+      }
+    }
+  </div>
+</section>

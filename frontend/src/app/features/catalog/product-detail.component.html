@@ -1,0 +1,288 @@
+<section class="w-full bg-slate-50 py-6">
+  <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+    <button 
+      type="button"
+      (click)="onBack()"
+      class="mb-8 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-500"
+    >
+      Back
+    </button>
+    
+
+    @if (isLoading()) {
+      <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+        <div class="card p-3">
+          <div class="aspect-square w-full rounded-2xl bg-slate-200 animate-pulse"></div>
+          <div class="mt-3 grid grid-cols-5 gap-2">
+            @for (s of skeletons; track s) {
+              <div class="aspect-square rounded-xl bg-slate-200 animate-pulse"></div>
+            }
+          </div>
+        </div>
+        <div class="card p-4">
+          <div class="h-7 w-3/4 rounded-full bg-slate-200 animate-pulse"></div>
+          <div class="mt-3 h-5 w-1/3 rounded-full bg-slate-200 animate-pulse"></div>
+          <div class="mt-3 h-4 w-1/2 rounded-full bg-slate-200 animate-pulse"></div>
+          <div class="mt-4 h-24 w-full rounded-2xl bg-slate-200 animate-pulse"></div>
+          <div class="mt-5 flex gap-2">
+            <div class="h-9 w-24 rounded-full bg-slate-200 animate-pulse"></div>
+            <div class="h-9 w-28 rounded-full bg-slate-200 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    } @else if (error()) {
+      <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+        {{ error() }}
+      </div>
+    } @else if (!product()) {
+      <div class="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm font-semibold text-slate-700">
+        Product not found.
+      </div>
+    } @else {
+      <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+        <article class="card p-3 transition duration-300 hover:-translate-y-1 hover:shadow-lg">
+          <button
+            type="button"
+            class="group aspect-square w-full overflow-hidden rounded-2xl bg-slate-100"
+            [disabled]="!selectedImage()"
+            (click)="selectedImage() && onOpenZoom(selectedImage()!)"
+          >
+            @if (selectedImage()) {
+              <img
+                [src]="selectedImage()!"
+                [alt]="product()!.name"
+                class="h-full w-full object-cover transition duration-300 group-hover:scale-110"
+              />
+            } @else {
+              <div class="flex h-full w-full items-center justify-center text-sm font-medium text-slate-400">
+                No image available
+              </div>
+            }
+          </button>
+
+          @if (productImages().length > 1) {
+            <div class="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-5">
+              @for (image of productImages(); track image) {
+                <button
+                  type="button"
+                  class="aspect-square overflow-hidden rounded-xl border-2 transition hover:shadow-md"
+                  [class.border-indigo-500]="selectedImage() === image"
+                  [class.border-slate-200]="selectedImage() !== image"
+                  (click)="onSelectImage(image)"
+                >
+                  <img [src]="image" [alt]="product()!.name" class="h-full w-full object-cover" />
+                </button>
+              }
+            </div>
+          }
+        </article>
+
+        <article class="card p-4 transition duration-300 hover:-translate-y-1 hover:shadow-lg">
+          <div class="space-y-4">
+          <div class="space-y-1.5">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600">Product</p>
+            <h1 class="text-2xl font-semibold text-slate-900 lg:text-3xl">
+              {{ product()!.name }}
+            </h1>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+            <span class="inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-1 text-xs font-semibold text-white">
+              {{ product()!.price | currency:'USD':'symbol' }}
+            </span>
+            @if (isVendor()) {
+              <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                In stock: {{ product()!.stockQuantity }}
+              </span>
+            }
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                {{ product()!.categoryName || 'Uncategorized' }}
+            </span>
+            @if (isVendor()) {
+              <span class="text-slate-500">
+                Vendor: {{ product()!.vendorName || 'Aurora Vendor' }}
+              </span>
+            }
+          </div>
+
+          <div class="border-t border-slate-100 pt-3">
+            <div class="rounded-xl bg-slate-50 px-3.5 py-2.5">
+              <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Description</p>
+              <p class="whitespace-pre-line text-xs leading-relaxed text-slate-700 sm:text-sm">
+                {{ product()!.description || 'No description provided for this product.' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 px-5 py-2 text-xs font-semibold text-white shadow-soft transition hover:from-indigo-600 hover:via-indigo-700 hover:to-indigo-800 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-50"
+              (click)="onBuyNow()"
+            >
+              Buy Now
+            </button>
+          </div>
+          </div>
+        </article>
+      </div>
+
+      @if (checkoutOpen()) {
+        <div class="fixed inset-0 z-[70] bg-slate-950/30 backdrop-blur-xl" (click)="onCloseCheckout()"></div>
+        <div
+          class="fixed inset-y-0 right-0 z-[71] flex w-full max-w-md flex-col bg-white/90 shadow-2xl transition-transform duration-300 ease-out"
+          [style.transform]="checkoutOpen() ? 'translateX(0)' : 'translateX(100%)'"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+            <h2 class="text-lg font-semibold text-slate-900">Order Checkout</h2>
+            <button
+              type="button"
+              (click)="onCloseCheckout()"
+              class="rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            @if (orderSuccess()) {
+              <div class="space-y-4">
+                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <div class="flex items-center gap-2 mb-3">
+                    <svg class="h-5 w-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <p class="font-semibold text-emerald-700">Order Confirmed</p>
+                  </div>
+                  <p class="text-sm text-emerald-700">Your order has been placed successfully.</p>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Order ID</p>
+                    <p class="text-sm font-mono text-slate-900">#{{ orderSuccess()?.id || 'N/A' }}</p>
+                  </div>
+
+                  <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Total Amount</p>
+                    <p class="text-lg font-semibold text-slate-900">{{ (orderSuccess()?.totalAmount ?? 0) | currency:'USD':'symbol' }}</p>
+                  </div>
+
+                  <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Shipping Address</p>
+                    <p class="text-sm text-slate-700 whitespace-pre-wrap break-words">{{ orderSuccess()?.shippingAddress }}</p>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="space-y-4">
+                <div class="rounded-2xl border border-slate-100 bg-slate-50 overflow-hidden">
+                  <div class="aspect-square bg-slate-200">
+                    @if (selectedImage()) {
+                      <img
+                        [src]="selectedImage()!"
+                        [alt]="product()!.name"
+                        class="h-full w-full object-cover"
+                      />
+                    }
+                  </div>
+                  <div class="p-3 space-y-1">
+                    <p class="font-semibold text-slate-900 text-sm">{{ product()!.name }}</p>
+                    <p class="text-xs text-slate-500">{{ product()!.categoryName || 'Product' }}</p>
+                    <p class="text-base font-bold text-indigo-600">{{ product()!.price | currency:'USD':'symbol' }}</p>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label for="checkoutAddress" class="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    Shipping Address
+                  </label>
+                  <textarea
+                    id="checkoutAddress"
+                    rows="5"
+                    [value]="shippingAddress()"
+                    (input)="onShippingAddressInput($event)"
+                    placeholder="Street address, city, postal code, country"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  ></textarea>
+                </div>
+
+                @if (checkoutError()) {
+                  <div class="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
+                    {{ checkoutError() }}
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (!orderSuccess()) {
+            <div class="border-t border-slate-100 px-6 py-4 space-y-3">
+              <button
+                type="button"
+                (click)="onConfirmCheckout()"
+                [disabled]="placingOrder()"
+                class="w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:from-slate-950 hover:to-slate-900 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                @if (placingOrder()) {
+                  <span class="inline-flex items-center gap-2">
+                    <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Placing Order...
+                  </span>
+                } @else {
+                  Confirm Order
+                }
+              </button>
+              <button
+                type="button"
+                (click)="onCloseCheckout()"
+                [disabled]="placingOrder()"
+                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          } @else {
+            <div class="border-t border-slate-100 px-6 py-4">
+              <button
+                type="button"
+                (click)="onCloseCheckout()"
+                class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-slate-950"
+              >
+                View My Orders
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (zoomedImage()) {
+        <div
+          class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
+          (click)="onCloseZoom()"
+        >
+          <div class="relative w-full max-w-4xl" (click)="$event.stopPropagation()">
+            <button
+              type="button"
+              class="absolute right-3 top-3 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 transition hover:bg-white"
+              (click)="onCloseZoom()"
+            >
+              Close
+            </button>
+            <img
+              [src]="zoomedImage()!"
+              [alt]="product()!.name"
+              class="max-h-[85vh] w-full rounded-2xl object-contain shadow-2xl"
+            />
+          </div>
+        </div>
+      }
+    }
+  </div>
+</section>

@@ -1,0 +1,59 @@
+<section class="w-full space-y-6 text-slate-900">
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Admin</p>
+      <h1 class="text-3xl font-semibold">Dashboard</h1>
+      <p class="mt-1 text-sm text-slate-600">Control view with top-level marketplace health metrics.</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <a
+        routerLink="/admin/users"
+        class="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+      >
+        User Management
+      </a>
+      <a
+        routerLink="/admin/categories"
+        class="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+      >
+        Categories
+      </a>
+      <button
+        type="button"
+        class="inline-flex items-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700"
+        (click)="onRefreshStats()"
+      >
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="grid w-full gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <article class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+      <p class="text-sm text-slate-500">Total Users</p>
+      <p class="mt-2 text-3xl font-semibold text-slate-900">{{ totalUsers() }}</p>
+      <p class="mt-1 text-xs text-slate-500">All registered accounts</p>
+    </article>
+    <article class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+      <p class="text-sm text-slate-500">Total Vendors</p>
+      <p class="mt-2 text-3xl font-semibold text-slate-900">{{ totalVendors() }}</p>
+      <p class="mt-1 text-xs text-slate-500">Accounts with VENDOR role</p>
+    </article>
+    <article class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+      <p class="text-sm text-slate-500">Total Products</p>
+      <p class="mt-2 text-3xl font-semibold text-slate-900">{{ totalProducts() }}</p>
+      <p class="mt-1 text-xs text-slate-500">Catalog items currently available</p>
+    </article>
+  </div>
+
+  @if (loading()) {
+    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Refreshing admin metrics...</p>
+  }
+</section>

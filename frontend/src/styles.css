@@ -33,15 +33,15 @@
 }
 
 body {
-	@apply bg-base-light text-slate-800 antialiased;
+	@apply bg-slate-50 text-slate-800 antialiased;
 }
 
 .page-shell {
-	@apply min-h-screen bg-base-light text-slate-900;
+	@apply min-h-screen bg-slate-50 text-slate-900;
 }
 
 .card {
-	@apply rounded-2xl bg-white shadow-soft ring-1 ring-slate-100;
+	@apply rounded-2xl border border-slate-100 bg-white shadow-sm;
 }
 
 .skeleton {

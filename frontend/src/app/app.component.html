@@ -1,7 +1,14 @@
-<div class="page-shell">
+<div class="page-shell flex flex-col h-screen">
   <app-navbar />
-  <main class="container-xl py-10 lg:py-12">
-    <router-outlet />
-  </main>
+  <div class="flex flex-1 overflow-hidden">
+    @if (authService.isLoggedIn()) {
+      <aside class="sticky w-64 shrink-0 bg-slate-900 text-slate-100 shadow-xl overflow-y-auto">
+        <app-sidebar />
+      </aside>
+    }
+    <main class="flex-1 overflow-y-auto">
+      <router-outlet />
+    </main>
+  </div>
   <app-toast />
 </div>

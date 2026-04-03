@@ -19,6 +19,11 @@ export class AuthStore {
   readonly user = computed(() => this.state().user);
   readonly isAuthenticated = computed(() => !!this.state().token);
 
+  readonly isAdmin = computed(() => {
+    const role = this.state().user?.role?.toUpperCase();
+    return role === 'ADMIN' || role === 'ROLE_ADMIN';
+  });
+
   constructor() {
     effect(() => {
       const current = this.state();

@@ -1,76 +1,72 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, NgIf } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { ProductDto } from '../../core/models/product-dto';
+import { CategoryDto } from '../../core/models/category-dto';
+import { CategoryStore } from '../../core/store/category.store';
+import { WishlistService } from '../../core/services/wishlist.service';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [NgIf, CurrencyPipe],
-  template: `
-    <section class="space-y-6">
-      <div class="flex flex-col gap-2">
-        <p class="text-sm font-semibold uppercase tracking-wide text-primary-500">Catalog</p>
-        <h1 class="text-3xl font-semibold text-slate-900">Curated products</h1>
-        <p class="text-slate-600">Minimalist browsing with live data from the Spring backend.</p>
-      </div>
-
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        @if (loading()) {
-          @for (s of skeletons; track s) {
-            <div class="card p-5">
-              <div class="skeleton mb-4 h-40"></div>
-              <div class="skeleton mb-2 h-4 w-3/4"></div>
-              <div class="skeleton h-4 w-1/2"></div>
-            </div>
-          }
-        } @else {
-          @for (product of products(); track product.id) {
-            <article class="card flex flex-col p-5">
-              <div class="aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-50">
-                <img
-                  *ngIf="product.imageUrl"
-                  [src]="product.imageUrl"
-                  [alt]="product.name"
-                  class="h-full w-full object-cover"
-                />
-              </div>
-              <div class="mt-4 flex flex-1 flex-col gap-2">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-lg font-semibold text-slate-900">{{ product.name }}</h3>
-                  <span class="text-base font-semibold text-slate-900">
-                    {{ product.price | currency:'USD':'symbol' }}
-                  </span>
-                </div>
-                <p class="line-clamp-2 text-sm text-slate-600">{{ product.description }}</p>
-                <div class="mt-auto flex items-center justify-between text-sm text-slate-500">
-                  <span>{{ product.categoryName || 'Category' }}</span>
-                  <span>{{ product.stockQuantity }} in stock</span>
-                </div>
-              </div>
-            </article>
-          }
-        }
-      </div>
-    </section>
-  `,
+  imports: [NgIf, CurrencyPipe, RouterLink],
+  templateUrl: './catalog.component.html',
+  styleUrls: ['./catalog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CatalogComponent implements OnInit {
   private readonly productService = inject(ProductService);
+  private readonly categoryStore = inject(CategoryStore);
+  private readonly wishlistService = inject(WishlistService);
 
   protected readonly products = signal<ProductDto[]>([]);
+  protected readonly categories = this.categoryStore.categories;
   protected readonly loading = signal<boolean>(true);
+  protected readonly searchTerm = signal('');
+  protected readonly selectedCategoryId = signal<number | null>(null);
   protected readonly skeletons = Array.from({ length: 6 }, (_, idx) => idx);
+
+  protected readonly filteredProducts = computed(() => {
+    const normalizedSearch = this.searchTerm().trim().toLowerCase();
+    const categoryId = this.selectedCategoryId();
+
+    return this.products().filter((product) => {
+      const matchesSearch = !normalizedSearch || product.name.toLowerCase().includes(normalizedSearch);
+      const matchesCategory = categoryId == null || product.categoryId === categoryId;
+      return matchesSearch && matchesCategory;
+    });
+  });
 
   ngOnInit(): void {
     this.loadProducts();
+    this.categoryStore.loadCategories();
+  }
+
+  onSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchTerm.set(value);
+  }
+
+  onCategoryChange(event: Event): void {
+    const rawValue = (event.target as HTMLSelectElement).value;
+    this.selectedCategoryId.set(rawValue === 'all' ? null : Number(rawValue));
+  }
+
+  isWishlisted(productId?: number): boolean {
+    return this.wishlistService.isWishlisted(productId);
+  }
+
+  onToggleWishlist(product: ProductDto, event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.wishlistService.toggle(product);
   }
 
   private loadProducts(): void {
     this.loading.set(true);
     this.productService
-      .getAll({ page: 0, size: 9 })
+      .getAll({ page: 0, size: 24 })
       .subscribe({
         next: (page) => this.products.set(page.content),
         error: () => this.products.set([]),

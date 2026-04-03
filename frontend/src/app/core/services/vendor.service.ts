@@ -28,11 +28,10 @@ export class VendorService {
     if (vendorId == null) {
       throw new Error('Vendor ID is required to load vendor products');
     }
-    // Backend should expose /api/vendors/{vendorId}/products with pageable + filters.
-    return this.http.get<PageResponse<ProductDto>>(
-      `${this.baseUrl}/${vendorId}/products`,
-      { params: buildHttpParams(query) }
-    );
+    // Use /api/products?vendorId=... with pageable + filters.
+    const productsUrl = `${environment.apiBaseUrl}/products`;
+    const params = buildHttpParams({ ...(query ?? {}), vendorId });
+    return this.http.get<PageResponse<ProductDto>>(productsUrl, { params });
   }
 
   getVendorOrders(vendorId: number | null = this.vendorId(), page?: PageRequest) {
