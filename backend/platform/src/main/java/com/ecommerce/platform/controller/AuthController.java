@@ -41,6 +41,12 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/registerVendor")
+    public ResponseEntity<AuthResponse> registerVendor(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = authService.registerVendor(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     /**
      * Authenticates an existing user and returns a JWT.
      *

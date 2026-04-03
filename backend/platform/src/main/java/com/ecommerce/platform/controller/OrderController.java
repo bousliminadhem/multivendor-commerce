@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+
 /**
  * REST controller for order operations.
  * <p>
@@ -30,6 +31,15 @@ public class OrderController {
 
     private final OrderService orderService;
     private final UserRepository userRepository;
+
+        @GetMapping("/vendor")
+        @PreAuthorize("hasRole('VENDOR')")
+        public ResponseEntity<Page<OrderDto>> getOrdersForVendor(
+                @AuthenticationPrincipal User user, // Spring injects your User entity here
+                Pageable pageable) {
+
+            return ResponseEntity.ok(orderService.getOrdersByVendor(user.getId(), pageable));
+        }
 
     /**
      * Places a new order for the currently authenticated user.
@@ -72,21 +82,34 @@ public class OrderController {
     }
 
     /**
-     * Retrieves all orders (admin only).
+     * Retrieves orders. Admins get all orders, vendors get their orders if vendorOrders=true.
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<OrderDto>> getAllOrders(
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
+    public ResponseEntity<Page<OrderDto>> getOrders(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) boolean vendorOrders,
             @PageableDefault(size = 20) Pageable pageable) {
+        
+        // If vendorOrders flag is set and user is a vendor, return their orders
+        if (vendorOrders) {
+            User vendor = userRepository.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "User", "email", userDetails.getUsername()));
+            return ResponseEntity.ok(orderService.getOrdersByVendor(vendor.getId(), pageable));
+        }
+        
+        // Otherwise, only admins can proceed
         return ResponseEntity.ok(orderService.getAllOrders(pageable));
     }
 
     /**
-     * Updates the status of an order (admin only).
+     * Updates the status of an order.
+     * Admins can update any order; vendors can update orders containing their products.
      * Accepts a status string in the request parameter.
      */
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     public ResponseEntity<OrderDto> updateOrderStatus(
             @PathVariable Long id,
             @RequestParam String status) {

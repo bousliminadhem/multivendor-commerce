@@ -39,6 +39,10 @@ public class ProductDto {
     /** Populated on responses — the name of the associated category. */
     private String categoryName;
 
+    private Long vendorId;
+
+    private String vendorName;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

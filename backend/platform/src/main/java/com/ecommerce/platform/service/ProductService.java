@@ -3,12 +3,15 @@ package com.ecommerce.platform.service;
 import com.ecommerce.platform.dto.ProductDto;
 import com.ecommerce.platform.entity.Category;
 import com.ecommerce.platform.entity.Product;
+import com.ecommerce.platform.entity.User;
 import com.ecommerce.platform.exception.ResourceNotFoundException;
 import com.ecommerce.platform.repository.CategoryRepository;
 import com.ecommerce.platform.repository.ProductRepository;
+import com.ecommerce.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public Page<ProductDto> getAllProducts(Pageable pageable) {
@@ -30,6 +34,11 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<ProductDto> getProductsByCategory(Long categoryId, Pageable pageable) {
         return productRepository.findByCategoryId(categoryId, pageable).map(this::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDto> getProductsByVendor(Long vendorId, Pageable pageable) {
+        return productRepository.findByVendorId(vendorId, pageable).map(this::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -43,10 +52,13 @@ public class ProductService {
         return toDto(product);
     }
 
-    @Transactional
-    public ProductDto createProduct(ProductDto dto) {
+        @Transactional
+        public ProductDto createProduct(Long authenticatedUserId, ProductDto dto) {
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", dto.getCategoryId()));
+
+        User vendor = userRepository.findById(authenticatedUserId)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", authenticatedUserId));
 
         Product product = Product.builder()
                 .name(dto.getName())
@@ -55,14 +67,17 @@ public class ProductService {
                 .stockQuantity(dto.getStockQuantity())
                 .imageUrl(dto.getImageUrl())
                 .category(category)
+            .vendor(vendor)
                 .build();
 
         return toDto(productRepository.save(product));
     }
 
     @Transactional
-    public ProductDto updateProduct(Long id, ProductDto dto) {
+    public ProductDto updateProduct(Long id, Long authenticatedUserId, ProductDto dto) {
         Product product = findOrThrow(id);
+
+        enforceOwnership(product, authenticatedUserId);
 
         // Update category if changed
         if (!product.getCategory().getId().equals(dto.getCategoryId())) {
@@ -81,8 +96,10 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(Long id) {
+    public void deleteProduct(Long id, Long authenticatedUserId) {
         Product product = findOrThrow(id);
+
+        enforceOwnership(product, authenticatedUserId);
         productRepository.delete(product);
     }
 
@@ -103,8 +120,17 @@ public class ProductService {
                 .imageUrl(p.getImageUrl())
                 .categoryId(p.getCategory().getId())
                 .categoryName(p.getCategory().getName())
+                .vendorId(p.getVendor() != null ? p.getVendor().getId() : null)
+                .vendorName(p.getVendor() != null ? p.getVendor().getFirstName() + " " + p.getVendor().getLastName() : null)
                 .createdAt(p.getCreatedAt())
                 .updatedAt(p.getUpdatedAt())
                 .build();
+    }
+
+    private void enforceOwnership(Product product, Long authenticatedUserId) {
+        Long ownerId = product.getVendor() != null ? product.getVendor().getId() : null;
+        if (ownerId == null || !ownerId.equals(authenticatedUserId)) {
+            throw new AccessDeniedException("You are not allowed to modify this product");
+        }
     }
 }

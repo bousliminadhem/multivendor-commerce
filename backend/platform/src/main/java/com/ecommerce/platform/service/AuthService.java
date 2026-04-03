@@ -8,6 +8,7 @@ import com.ecommerce.platform.entity.User;
 import com.ecommerce.platform.exception.BadRequestException;
 import com.ecommerce.platform.repository.UserRepository;
 import com.ecommerce.platform.security.JwtTokenProvider;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -90,6 +91,36 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.ADMIN)
+                .build();
+
+        userRepository.save(user);
+
+        // Generate JWT for the newly created user
+        String token = jwtTokenProvider.generateToken(user.getEmail());
+
+        return AuthResponse.builder()
+                .token(token)
+                .tokenType("Bearer")
+                .userId(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .build();
+    }
+
+    @Transactional
+    public AuthResponse registerVendor(RegisterRequest request) {
+        // Guard: duplicate email
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email is already registered: " + request.getEmail());
+        }
+
+        // Build and persist the new user
+        User user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.VENDOR)
                 .build();
 
         userRepository.save(user);

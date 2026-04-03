@@ -53,6 +53,10 @@ public class SecurityConfig {
                 )
                 // 2. Request matching logic
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/orders/vendor/**").hasRole("VENDOR") // Direct Vendor access
+                        .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "ADMIN", "VENDOR")
+                        .requestMatchers(HttpMethod.POST, "/api/products/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/media/upload").authenticated()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
@@ -61,9 +65,10 @@ public class SecurityConfig {
                         // Crucial for preflight: Allow OPTIONS requests globally
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                        // Product ownership checks are enforced in ProductService,
+                        // so authenticated vendors can update/delete their own products.
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").authenticated()
 
                         .anyRequest().authenticated()
                 ) // Closing authorizeHttpRequests here

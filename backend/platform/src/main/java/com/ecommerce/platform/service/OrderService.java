@@ -37,6 +37,32 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
+    public Page<OrderDto> getOrdersByVendor(Long vendorId, Pageable pageable) {
+        // 1. Fetch orders that contain at least one item belonging to this vendor
+        Page<Order> orders = orderRepository.findOrdersByVendorId(vendorId, pageable);
+
+        return orders.map(order -> {
+            // 2. Filter the items list so the Vendor only sees THEIR products
+            List<OrderItemDto> vendorItems = order.getItems().stream()
+                    .filter(item -> item.getProduct().getVendor().getId().equals(vendorId))
+                    .map(this::toItemDto)
+                    .collect(Collectors.toList());
+
+            // 3. Return the DTO with only the relevant items
+            OrderDto dto = toDto(order);
+            dto.setItems(vendorItems);
+
+            // Optional: Re-calculate totalAmount just for this vendor's items
+            BigDecimal vendorTotal = vendorItems.stream()
+                    .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            dto.setTotalAmount(vendorTotal);
+
+            return dto;
+        });
+    }
+
     /**
      * Places a new order for the given user.
      */

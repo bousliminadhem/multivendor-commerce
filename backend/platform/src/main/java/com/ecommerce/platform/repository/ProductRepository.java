@@ -19,4 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /** Full-text-style search on product name (case-insensitive LIKE). */
     Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    /** Page through all products that belong to a given vendor. */
+    Page<Product> findByVendorId(Long vendorId, Pageable pageable);
 }
