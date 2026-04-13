@@ -1,0 +1,9 @@
+add more details in the navbar
+ad banner 
+products on sale
+unlimited scrolling/loop 
+copy store localisation (google maps)
+add multiple images for one item 
+adding categorie and subcategorie relation 
+improve the profile details 
+vendor sails statistics graph doesn't work

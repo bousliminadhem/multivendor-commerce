@@ -1,15 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe, Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Observable, of, switchMap, catchError, startWith, tap, map } from 'rxjs';
+import { Observable, of, switchMap, catchError, startWith, tap, map, finalize } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { ProductDto } from '../../core/models/product-dto';
 import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
 import { OrderDto } from '../../core/models/order-dto';
 
 @Component({
@@ -38,11 +36,22 @@ export class ProductDetailComponent {
   readonly checkoutError = signal<string | null>(null);
   readonly placingOrder = signal(false);
   readonly orderSuccess = signal<OrderDto | null>(null);
+  readonly quantity = signal(1);
   readonly skeletons = Array.from({ length: 5 }, (_, index) => index);
 
   // Convenience getter for template control flow
   readonly isLoading = () => this.loading();
   readonly isVendor = () => this.authService.getCurrentUser()?.role === 'VENDOR';
+
+  readonly discountedPrice = computed(() => {
+    const product = this.product();
+    if (!product?.discountPercentage) return product?.price ?? 0;
+    return product.price * (1 - product.discountPercentage / 100);
+  });
+
+  readonly totalPrice = computed(() => {
+    return this.discountedPrice() * this.quantity();
+  });
 
   private readonly productSignal = toSignal(
     this.route.paramMap.pipe(
@@ -65,7 +74,7 @@ export class ProductDetailComponent {
         return this.productService.getById(id).pipe(
           map((product) => product as ProductDto | null),
           catchError(() => {
-            this.error.set('Unable to load product.');
+            this.error.set('Unable to load product. Please try again.');
             return of<ProductDto | null>(null);
           })
         );
@@ -113,6 +122,14 @@ export class ProductDetailComponent {
     this.location.back();
   }
 
+  onQuantityChange(delta: number): void {
+    const newQty = this.quantity() + delta;
+    const stock = this.product()?.stockQuantity ?? 0;
+    if (newQty >= 1 && newQty <= stock) {
+      this.quantity.set(newQty);
+    }
+  }
+
   onBuyNow(): void {
     if (!this.authService.isLoggedIn()) {
       this.toast.info('Please sign in to place an order.');
@@ -128,6 +145,8 @@ export class ProductDetailComponent {
     this.checkoutOpen.set(false);
     this.checkoutError.set(null);
     this.orderSuccess.set(null);
+    this.quantity.set(1);
+    this.shippingAddress.set('');
   }
 
   onShippingAddressInput(event: Event): void {
@@ -149,9 +168,10 @@ export class ProductDetailComponent {
     }
 
     // Validate stock before submission
-    if ((product.stockQuantity ?? 0) < 1) {
-      this.checkoutError.set('This product is currently out of stock.');
-      this.toast.error('Out of stock: unable to complete order.');
+    const qty = this.quantity();
+    if ((product.stockQuantity ?? 0) < qty) {
+      this.checkoutError.set(`Only ${product.stockQuantity} item(s) available.`);
+      this.toast.error('Insufficient stock.');
       return;
     }
 
@@ -160,7 +180,9 @@ export class ProductDetailComponent {
       items: [
         {
           productId: product.id,
-          quantity: 1
+          quantity: qty,
+          unitPrice: this.discountedPrice(),
+          productName: product.name
         }
       ]
     };
@@ -174,12 +196,10 @@ export class ProductDetailComponent {
       .subscribe({
         next: (orderResponse) => {
           this.orderSuccess.set(orderResponse);
-          this.toast.success('Order placed successfully.');
+          this.toast.success('Order placed successfully!');
           setTimeout(() => {
-            this.shippingAddress.set('');
-            this.checkoutOpen.set(false);
-            this.orderSuccess.set(null);
-            this.router.navigate(['/customer/orders']);
+            this.onCloseCheckout();
+            this.router.navigate(['/my-orders']);
           }, 2000);
         },
         error: (err) => {
@@ -188,6 +208,10 @@ export class ProductDetailComponent {
             const errorMsg = err?.error?.message || 'Invalid order data. Please check your input.';
             this.checkoutError.set(errorMsg);
             this.toast.error(errorMsg);
+          } else if (status === 409) {
+            const errorMsg = 'This order was already processed. Please refresh the page.';
+            this.checkoutError.set(errorMsg);
+            this.toast.error('Duplicate order detected.');
           } else {
             const fallbackMsg = 'Unable to place order right now. Please try again.';
             this.checkoutError.set(fallbackMsg);
@@ -209,3 +233,4 @@ export class ProductDetailComponent {
     this.zoomedImage.set(null);
   }
 }
+

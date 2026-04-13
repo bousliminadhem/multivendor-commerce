@@ -46,8 +46,18 @@ export class AuthService {
   }
 
   register(payload: RegisterRequest) {
+    // Route to the appropriate endpoint based on role
+    const role = payload.role?.toUpperCase() ?? 'CUSTOMER';
+    let endpoint = `${this.baseUrl}/register`;
+    
+    if (role === 'VENDOR') {
+      endpoint = `${this.baseUrl}/registerVendor`;
+    } else if (role === 'ADMIN') {
+      endpoint = `${this.baseUrl}/registerAdmin`;
+    }
+
     return this.http
-      .post<AuthResponse>(`${this.baseUrl}/register`, payload)
+      .post<AuthResponse>(endpoint, payload)
       .pipe(tap((res) => {
         this.authStore.setAuth(res);
         this.router.navigate([this.getLandingRouteByRole(res.role)]);

@@ -1,5 +1,6 @@
 package com.ecommerce.platform.config;
 
+import com.ecommerce.platform.security.IdempotencyFilter;
 import com.ecommerce.platform.security.JwtAuthenticationEntryPoint;
 import com.ecommerce.platform.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final IdempotencyFilter idempotencyFilter;
 
     // Defined these as a constant for cleaner code
     private static final String[] SWAGGER_WHITELIST = {
@@ -72,6 +74,8 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 ) // Closing authorizeHttpRequests here
+                // 3. Filter chain: Idempotency → JWT → Spring Security
+                .addFilterBefore(idempotencyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -92,7 +96,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "X-Idempotency-Key"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L); // Cache the preflight for 1 hour
 

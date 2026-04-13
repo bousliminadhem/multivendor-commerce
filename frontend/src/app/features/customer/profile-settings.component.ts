@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
+import { CommonModule, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-profile-settings',
   standalone: true,
+  imports: [CommonModule, DatePipe],
   templateUrl: './profile-settings.component.html',
   styleUrls: ['./profile-settings.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

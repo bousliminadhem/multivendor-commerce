@@ -5,9 +5,14 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO for category creation/update requests and API responses.
+ * <p>
+ * Supports recursive hierarchies: a category can reference a
+ * {@code parentCategoryId} to become a sub-category, and the response
+ * includes nested {@code subCategories}.
  */
 @Getter @Setter
 @NoArgsConstructor
@@ -22,6 +27,15 @@ public class CategoryDto {
     private String name;
 
     private String description;
+
+    /** Null for root categories. Set to a valid category ID to nest under. */
+    private Long parentCategoryId;
+
+    /** Parent category name — populated in responses for display convenience. */
+    private String parentCategoryName;
+
+    /** Direct children of this category — populated in responses. */
+    private List<CategoryDto> subCategories;
 
     private LocalDateTime createdAt;
 }

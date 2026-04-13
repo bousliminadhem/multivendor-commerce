@@ -4,4 +4,5 @@ export interface CategoryDto {
   slug?: string;
   description?: string;
   createdAt?: string;
+  subCategories?: CategoryDto[];
 }

@@ -1,231 +1,359 @@
-<section class="w-full bg-slate-50 py-6">
-  <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+<section class="w-full bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8 min-h-screen">
+  <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+    <!-- Navigation -->
     <button 
       type="button"
       (click)="onBack()"
-      class="mb-8 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-500"
+      class="mb-8 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
     >
-      Back
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Back to Catalog
     </button>
-    
 
+    <!-- Loading State -->
     @if (isLoading()) {
-      <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
-        <div class="card p-3">
-          <div class="aspect-square w-full rounded-2xl bg-slate-200 animate-pulse"></div>
-          <div class="mt-3 grid grid-cols-5 gap-2">
+      <div class="grid gap-8 lg:grid-cols-3">
+        <!-- Image Skeleton -->
+        <div class="lg:col-span-2">
+          <div class="aspect-[4/3] w-full rounded-3xl bg-gradient-to-br from-slate-200 to-slate-100 animate-pulse"></div>
+          <div class="mt-4 grid grid-cols-5 gap-3">
             @for (s of skeletons; track s) {
-              <div class="aspect-square rounded-xl bg-slate-200 animate-pulse"></div>
+              <div class="aspect-square rounded-2xl bg-slate-200 animate-pulse"></div>
             }
           </div>
         </div>
-        <div class="card p-4">
-          <div class="h-7 w-3/4 rounded-full bg-slate-200 animate-pulse"></div>
-          <div class="mt-3 h-5 w-1/3 rounded-full bg-slate-200 animate-pulse"></div>
-          <div class="mt-3 h-4 w-1/2 rounded-full bg-slate-200 animate-pulse"></div>
-          <div class="mt-4 h-24 w-full rounded-2xl bg-slate-200 animate-pulse"></div>
-          <div class="mt-5 flex gap-2">
-            <div class="h-9 w-24 rounded-full bg-slate-200 animate-pulse"></div>
-            <div class="h-9 w-28 rounded-full bg-slate-200 animate-pulse"></div>
+        <!-- Details Skeleton -->
+        <div class="space-y-6">
+          <div class="h-8 w-2/3 rounded-xl bg-slate-200 animate-pulse"></div>
+          <div class="space-y-2">
+            <div class="h-6 w-1/2 rounded-lg bg-slate-200 animate-pulse"></div>
+            <div class="h-4 w-2/3 rounded-lg bg-slate-200 animate-pulse"></div>
+          </div>
+          <div class="h-32 w-full rounded-2xl bg-slate-200 animate-pulse"></div>
+          <div class="flex gap-3">
+            <div class="h-12 flex-1 rounded-xl bg-slate-200 animate-pulse"></div>
+            <div class="h-12 flex-1 rounded-xl bg-slate-200 animate-pulse"></div>
           </div>
         </div>
       </div>
     } @else if (error()) {
-      <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
-        {{ error() }}
+      <div class="rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-red-100 px-6 py-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-red-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-lg font-semibold text-red-700">{{ error() }}</p>
       </div>
     } @else if (!product()) {
-      <div class="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm font-semibold text-slate-700">
-        Product not found.
+      <div class="rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center">
+        <p class="text-lg font-semibold text-slate-700">Product not found.</p>
       </div>
     } @else {
-      <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
-        <article class="card p-3 transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-          <button
-            type="button"
-            class="group aspect-square w-full overflow-hidden rounded-2xl bg-slate-100"
-            [disabled]="!selectedImage()"
-            (click)="selectedImage() && onOpenZoom(selectedImage()!)"
-          >
-            @if (selectedImage()) {
-              <img
-                [src]="selectedImage()!"
-                [alt]="product()!.name"
-                class="h-full w-full object-cover transition duration-300 group-hover:scale-110"
-              />
-            } @else {
-              <div class="flex h-full w-full items-center justify-center text-sm font-medium text-slate-400">
-                No image available
+      <div class="grid gap-8 lg:grid-cols-3">
+        <!-- Product Images Section -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Hero Image with Glassmorphism Overlay -->
+          <div class="group relative overflow-hidden rounded-3xl bg-slate-100 shadow-xl transition-all duration-300 hover:shadow-2xl">
+            <button
+              type="button"
+              class="w-full block aspect-[4/3] overflow-hidden bg-slate-50"
+              [disabled]="!selectedImage()"
+              (click)="selectedImage() && onOpenZoom(selectedImage()!)"
+            >
+              @if (selectedImage()) {
+                <img
+                  [src]="selectedImage()!"
+                  [alt]="product()!.name"
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
+                <!-- Glassmorphism Overlay on Hover -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div class="absolute inset-0 backdrop-blur-0 group-hover:backdrop-blur-sm transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <div class="rounded-full bg-white/90 px-6 py-3 flex items-center gap-2 text-sm font-semibold text-slate-900 shadow-lg">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path>
+                    </svg>
+                    Click to Zoom
+                  </div>
+                </div>
+              } @else {
+                <div class="flex h-full w-full items-center justify-center text-sm font-medium text-slate-400">
+                  No image available
+                </div>
+              }
+            </button>
+
+            <!-- Discount Badge -->
+            @if (product()!.discountPercentage) {
+              <div class="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                Save {{ product()!.discountPercentage }}%
               </div>
             }
-          </button>
+          </div>
 
+          <!-- Thumbnail Carousel -->
           @if (productImages().length > 1) {
-            <div class="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-5">
-              @for (image of productImages(); track image) {
-                <button
-                  type="button"
-                  class="aspect-square overflow-hidden rounded-xl border-2 transition hover:shadow-md"
-                  [class.border-indigo-500]="selectedImage() === image"
-                  [class.border-slate-200]="selectedImage() !== image"
-                  (click)="onSelectImage(image)"
-                >
-                  <img [src]="image" [alt]="product()!.name" class="h-full w-full object-cover" />
-                </button>
-              }
+            <div class="space-y-3">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Gallery</p>
+              <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 pb-2 overflow-x-auto">
+                @for (image of productImages(); track image) {
+                  <button
+                    type="button"
+                    class="group relative aspect-square overflow-hidden rounded-2xl border-2 transition-all duration-300 flex-shrink-0"
+                    [class.border-indigo-500]="selectedImage() === image"
+                    [class.border-slate-200]="selectedImage() !== image"
+                    [class.ring-2]="selectedImage() === image"
+                    [class.ring-indigo-300]="selectedImage() === image"
+                    (click)="onSelectImage(image)"
+                  >
+                    <img [src]="image" [alt]="product()!.name" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
+                  </button>
+                }
+              </div>
             </div>
           }
-        </article>
+        </div>
 
-        <article class="card p-4 transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-          <div class="space-y-4">
-          <div class="space-y-1.5">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600">Product</p>
-            <h1 class="text-2xl font-semibold text-slate-900 lg:text-3xl">
+        <!-- Product Details Section -->
+        <div class="space-y-6">
+          <!-- Header -->
+          <div class="space-y-3">
+            @if (product()!.categoryName) {
+              <p class="text-xs font-bold uppercase tracking-[0.24em] text-indigo-600">{{ product()!.categoryName }}</p>
+            }
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
               {{ product()!.name }}
             </h1>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-            <span class="inline-flex items-center rounded-full bg-indigo-600 px-3.5 py-1 text-xs font-semibold text-white">
-              {{ product()!.price | currency:'USD':'symbol' }}
-            </span>
-            @if (isVendor()) {
-              <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                In stock: {{ product()!.stockQuantity }}
+          <!-- Rating & Reviews -->
+          @if (product()!.rating) {
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1">
+                @for (i of [1,2,3,4,5]; track i) {
+                  <svg class="h-4 w-4" [class.text-yellow-400]="i <= (product()!.rating || 0)" [class.text-slate-300]="i > (product()!.rating || 0)" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                  </svg>
+                }
+              </div>
+              <span class="text-sm font-semibold text-slate-600">
+                {{ product()!.rating }}/5 ({{ product()!.reviewCount || 0 }} reviews)
               </span>
-            }
-            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                {{ product()!.categoryName || 'Uncategorized' }}
-            </span>
-            @if (isVendor()) {
-              <span class="text-slate-500">
-                Vendor: {{ product()!.vendorName || 'Aurora Vendor' }}
+            </div>
+          }
+
+          <!-- Pricing Section -->
+          <div class="space-y-2">
+            <div class="flex items-baseline gap-3">
+              <span class="text-4xl font-bold text-slate-900">
+                {{ discountedPrice() | currency:'USD':'symbol':'1.2-2' }}
+              </span>
+              @if (product()!.originalPrice && product()!.discountPercentage) {
+                <span class="text-lg text-slate-400 line-through">
+                  {{ product()!.originalPrice | currency:'USD':'symbol':'1.2-2' }}
+                </span>
+              }
+            </div>
+            <p class="text-xs font-medium text-emerald-600">Free shipping on orders over $50</p>
+          </div>
+
+          <!-- Stock Status -->
+          <div class="flex items-center gap-2">
+            @if (product()!.stockQuantity > 5) {
+              <span class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-emerald-50 border border-emerald-200">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span class="text-xs font-semibold text-emerald-700">In Stock ({{ product()!.stockQuantity }})</span>
+              </span>
+            } @else if (product()!.stockQuantity > 0) {
+              <span class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-amber-50 border border-amber-200">
+                <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span class="text-xs font-semibold text-amber-700">Limited Stock ({{ product()!.stockQuantity }})</span>
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-red-50 border border-red-200">
+                <span class="h-2 w-2 rounded-full bg-red-500"></span>
+                <span class="text-xs font-semibold text-red-700">Out of Stock</span>
               </span>
             }
           </div>
 
-          <div class="border-t border-slate-100 pt-3">
-            <div class="rounded-xl bg-slate-50 px-3.5 py-2.5">
-              <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Description</p>
-              <p class="whitespace-pre-line text-xs leading-relaxed text-slate-700 sm:text-sm">
-                {{ product()!.description || 'No description provided for this product.' }}
-              </p>
+          <!-- Quantity Selector -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-slate-600">Quantity</label>
+            <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit">
+              <button
+                type="button"
+                (click)="onQuantityChange(-1)"
+                [disabled]="quantity() <= 1 || product()!.stockQuantity < quantity()"
+                class="p-2 rounded-lg transition-all duration-200 text-slate-600 hover:bg-white hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+              </button>
+              <span class="px-6 py-1 font-bold text-slate-900 text-center">{{ quantity() }}</span>
+              <button
+                type="button"
+                (click)="onQuantityChange(1)"
+                [disabled]="quantity() >= product()!.stockQuantity"
+                class="p-2 rounded-lg transition-all duration-200 text-slate-600 hover:bg-white hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              </button>
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-2 pt-1">
-            <button
-              type="button"
-              class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 px-5 py-2 text-xs font-semibold text-white shadow-soft transition hover:from-indigo-600 hover:via-indigo-700 hover:to-indigo-800 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-50"
-              (click)="onBuyNow()"
-            >
-              Buy Now
-            </button>
+          <!-- Description -->
+          <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 p-4 border border-slate-200">
+            <p class="text-sm leading-relaxed text-slate-700">
+              {{ product()!.description || 'Premium quality product designed for excellence.' }}
+            </p>
           </div>
-          </div>
-        </article>
+
+          <!-- Tags -->
+          @if (product()!.tags?.length ?? 0 > 0) {
+            <div class="space-y-2">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">Tags</p>
+              <div class="flex flex-wrap gap-2">
+                @for (tag of product()!.tags; track tag) {
+                  <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-700 border border-slate-200">
+                    {{ tag }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- CTA Button -->
+          <button
+            type="button"
+            (click)="onBuyNow()"
+            [disabled]="product()!.stockQuantity < 1"
+            class="w-full rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 px-6 py-4 text-base font-bold text-white shadow-lg transition-all duration-300 hover:from-indigo-600 hover:via-indigo-700 hover:to-indigo-800 hover:shadow-2xl hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:ring-offset-2"
+          >
+            {{ product()!.stockQuantity < 1 ? 'Out of Stock' : 'Add to Cart & Buy Now' }}
+          </button>
+        </div>
       </div>
 
+      <!-- Checkout Modal -->
       @if (checkoutOpen()) {
-        <div class="fixed inset-0 z-[70] bg-slate-950/30 backdrop-blur-xl" (click)="onCloseCheckout()"></div>
+        <!-- Backdrop with Glassmorphism -->
+        <div 
+          class="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-md transition-opacity duration-300"
+          (click)="onCloseCheckout()"
+        ></div>
+        
+        <!-- Modal Panel -->
         <div
-          class="fixed inset-y-0 right-0 z-[71] flex w-full max-w-md flex-col bg-white/90 shadow-2xl transition-transform duration-300 ease-out"
+          class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white/95 backdrop-blur-xl shadow-2xl transition-transform duration-300 ease-out overflow-y-auto"
           [style.transform]="checkoutOpen() ? 'translateX(0)' : 'translateX(100%)'"
           (click)="$event.stopPropagation()"
         >
-          <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <h2 class="text-lg font-semibold text-slate-900">Order Checkout</h2>
+          <!-- Header -->
+          <div class="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-6 py-4">
+            <h2 class="text-xl font-bold text-slate-900">Order Summary</h2>
             <button
               type="button"
               (click)="onCloseCheckout()"
-              class="rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              class="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
             >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
 
-          <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <div class="p-6 space-y-6">
             @if (orderSuccess()) {
+              <!-- Success State -->
               <div class="space-y-4">
-                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                  <div class="flex items-center gap-2 mb-3">
-                    <svg class="h-5 w-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                <div class="flex justify-center">
+                  <div class="relative w-16 h-16 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center animate-bounce">
+                    <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <p class="font-semibold text-emerald-700">Order Confirmed</p>
                   </div>
-                  <p class="text-sm text-emerald-700">Your order has been placed successfully.</p>
                 </div>
 
-                <div class="space-y-3">
-                  <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div class="text-center">
+                  <h3 class="text-xl font-bold text-slate-900 mb-1">Order Confirmed!</h3>
+                  <p class="text-sm text-slate-600">Thank you for your purchase</p>
+                </div>
+
+                <div class="space-y-3 pt-4">
+                  <div class="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 p-4 border border-slate-200">
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Order ID</p>
-                    <p class="text-sm font-mono text-slate-900">#{{ orderSuccess()?.id || 'N/A' }}</p>
+                    <p class="text-lg font-mono font-bold text-slate-900">#{{ orderSuccess()?.id || 'N/A' }}</p>
                   </div>
 
-                  <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div class="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 p-4 border border-slate-200">
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Total Amount</p>
-                    <p class="text-lg font-semibold text-slate-900">{{ (orderSuccess()?.totalAmount ?? 0) | currency:'USD':'symbol' }}</p>
+                    <p class="text-2xl font-bold text-indigo-600">{{ (orderSuccess()?.totalAmount ?? 0) | currency:'USD':'symbol' }}</p>
                   </div>
 
-                  <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Shipping Address</p>
-                    <p class="text-sm text-slate-700 whitespace-pre-wrap break-words">{{ orderSuccess()?.shippingAddress }}</p>
+                  <div class="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 p-4 border border-slate-200">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Shipping Address</p>
+                    <p class="text-sm text-slate-700 leading-relaxed">{{ orderSuccess()?.shippingAddress }}</p>
                   </div>
                 </div>
               </div>
             } @else {
+              <!-- Checkout Form -->
               <div class="space-y-4">
-                <div class="rounded-2xl border border-slate-100 bg-slate-50 overflow-hidden">
-                  <div class="aspect-square bg-slate-200">
+                <!-- Product Summary -->
+                <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-3 overflow-hidden">
+                  <div class="aspect-video bg-slate-200 rounded-lg mb-3 overflow-hidden">
                     @if (selectedImage()) {
-                      <img
-                        [src]="selectedImage()!"
-                        [alt]="product()!.name"
-                        class="h-full w-full object-cover"
-                      />
+                      <img [src]="selectedImage()!" [alt]="product()!.name" class="h-full w-full object-cover" />
                     }
                   </div>
-                  <div class="p-3 space-y-1">
-                    <p class="font-semibold text-slate-900 text-sm">{{ product()!.name }}</p>
-                    <p class="text-xs text-slate-500">{{ product()!.categoryName || 'Product' }}</p>
-                    <p class="text-base font-bold text-indigo-600">{{ product()!.price | currency:'USD':'symbol' }}</p>
+                  <div class="space-y-2">
+                    <p class="font-bold text-slate-900">{{ product()!.name }}</p>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-slate-600">{{ quantity() }} x {{ discountedPrice() | currency:'USD':'symbol':'1.2-2' }}</span>
+                      <span class="font-bold text-indigo-600">{{ totalPrice() | currency:'USD':'symbol' }}</span>
+                    </div>
                   </div>
                 </div>
 
+                <!-- Address Input -->
                 <div class="space-y-2">
-                  <label for="checkoutAddress" class="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    Shipping Address
+                  <label for="checkoutAddress" class="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Shipping Address *
                   </label>
                   <textarea
                     id="checkoutAddress"
-                    rows="5"
+                    rows="4"
                     [value]="shippingAddress()"
                     (input)="onShippingAddressInput($event)"
-                    placeholder="Street address, city, postal code, country"
-                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="Enter your complete shipping address..."
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-500/20"
                   ></textarea>
                 </div>
 
+                <!-- Error Message -->
                 @if (checkoutError()) {
-                  <div class="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
-                    {{ checkoutError() }}
+                  <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-2">
+                    <svg class="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <p class="text-sm font-semibold text-red-700">{{ checkoutError() }}</p>
                   </div>
                 }
               </div>
             }
           </div>
 
+          <!-- Footer -->
           @if (!orderSuccess()) {
-            <div class="border-t border-slate-100 px-6 py-4 space-y-3">
+            <div class="sticky bottom-0 border-t border-slate-200 bg-white/80 backdrop-blur-md px-6 py-4 space-y-3">
               <button
                 type="button"
                 (click)="onConfirmCheckout()"
                 [disabled]="placingOrder()"
-                class="w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:from-slate-950 hover:to-slate-900 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+                class="w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 text-base font-bold text-white shadow-lg transition-all duration-300 hover:from-slate-950 hover:to-slate-900 hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-slate-500/60 focus:ring-offset-2"
               >
                 @if (placingOrder()) {
                   <span class="inline-flex items-center gap-2">
@@ -233,52 +361,53 @@
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Placing Order...
+                    Processing...
                   </span>
                 } @else {
-                  Confirm Order
+                  Complete Purchase
                 }
               </button>
               <button
                 type="button"
                 (click)="onCloseCheckout()"
                 [disabled]="placingOrder()"
-                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Cancel
+                Continue Shopping
               </button>
             </div>
           } @else {
-            <div class="border-t border-slate-100 px-6 py-4">
+            <div class="border-t border-slate-200 bg-white/80 backdrop-blur-md px-6 py-4">
               <button
                 type="button"
                 (click)="onCloseCheckout()"
-                class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-slate-950"
+                class="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 py-3 text-base font-bold text-white shadow-lg transition hover:shadow-xl"
               >
-                View My Orders
+                Go to My Orders
               </button>
             </div>
           }
         </div>
       }
 
+      <!-- Zoomed Image Modal -->
       @if (zoomedImage()) {
         <div
-          class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 animate-in fade-in duration-300"
           (click)="onCloseZoom()"
         >
-          <div class="relative w-full max-w-4xl" (click)="$event.stopPropagation()">
+          <div class="relative w-full max-w-5xl" (click)="$event.stopPropagation()">
             <button
               type="button"
-              class="absolute right-3 top-3 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 transition hover:bg-white"
+              class="absolute -top-10 right-0 rounded-full bg-white/10 backdrop-blur px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/20"
               (click)="onCloseZoom()"
             >
-              Close
+              Close (ESC)
             </button>
             <img
               [src]="zoomedImage()!"
               [alt]="product()!.name"
-              class="max-h-[85vh] w-full rounded-2xl object-contain shadow-2xl"
+              class="max-h-[90vh] w-full rounded-2xl object-contain shadow-2xl animate-in zoom-in duration-300"
             />
           </div>
         </div>
